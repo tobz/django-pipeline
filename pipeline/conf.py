@@ -25,6 +25,8 @@ DEFAULTS = {
 
     'PIPELINE_DISABLE_WRAPPER': False,
 
+    'PIPELINE_OUTPUT_SOURCEMAPS': False,
+
     'PIPELINE_CSSTIDY_BINARY': '/usr/bin/env csstidy',
     'PIPELINE_CSSTIDY_ARGUMENTS': '--template=highest',
 

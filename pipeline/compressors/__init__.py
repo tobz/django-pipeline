@@ -4,6 +4,7 @@ import base64
 import os
 import posixpath
 import re
+import warnings
 
 from itertools import takewhile
 
@@ -55,6 +56,15 @@ class Compressor(object):
 
     def compress_js(self, paths, templates=None, **kwargs):
         """Concatenate and compress JS files"""
+        compressor = self.js_compressor
+
+        if settings.PIPELINE_OUTPUT_SOURCEMAPS:
+            if hasattr(compressor, 'compress_js_with_source_map'):
+                if templates:
+                    warnings.warn("Source maps are not supported with javascript templates")
+                else:
+                    return compressor(verbose=self.verbose).compress_js_with_source_map(paths)
+
         js = self.concatenate(paths)
         if templates:
             js = js + self.compile_templates(templates)
@@ -62,22 +72,30 @@ class Compressor(object):
         if not settings.PIPELINE_DISABLE_WRAPPER:
             js = "(function() {\n%s\n}).call(this);" % js
 
-        compressor = self.js_compressor
         if compressor:
             js = getattr(compressor(verbose=self.verbose), 'compress_js')(js)
 
-        return js
+        return js, None
 
     def compress_css(self, paths, output_filename, variant=None, **kwargs):
         """Concatenate and compress CSS files"""
-        css = self.concatenate_and_rewrite(paths, output_filename, variant)
         compressor = self.css_compressor
+
+        if settings.PIPELINE_OUTPUT_SOURCEMAPS:
+            if hasattr(compressor, 'compress_css_with_source_map'):
+                if variant == "datauri":
+                    warnings.warn("Source maps are not supported with datauri variant")
+                else:
+                    return (compressor(verbose=self.verbose)
+                                .compress_css_with_source_map(paths, output_filename))
+
+        css = self.concatenate_and_rewrite(paths, output_filename, variant)
         if compressor:
             css = getattr(compressor(verbose=self.verbose), 'compress_css')(css)
         if not variant:
-            return css
+            return css, None
         elif variant == "datauri":
-            return self.with_data_uri(css)
+            return self.with_data_uri(css), None
         else:
             raise CompressorError("\"%s\" is not a valid variant" % variant)
 
@@ -233,10 +251,11 @@ class CompressorBase(object):
 
 
 class SubProcessCompressor(CompressorBase):
-    def execute_command(self, command, content):
+    def execute_command(self, command, content, shell=True):
         import subprocess
-        pipe = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE,
-                                stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdin = subprocess.PIPE if content else None
+        pipe = subprocess.Popen(command, shell=shell, stdout=subprocess.PIPE,
+                                stdin=stdin, stderr=subprocess.PIPE)
         if content:
             content = smart_bytes(content)
         stdout, stderr = pipe.communicate(content)
