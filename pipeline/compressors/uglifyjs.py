@@ -42,6 +42,12 @@ class UglifyJSCompressor(SubProcessCompressor):
             else:
                 args += settings.PIPELINE_UGLIFYJS_ARGUMENTS
 
+        # Get the absolute path to the paths we were passed.
+        abs_paths = []
+        for path in paths:
+            abs_path = staticfiles_storage.path(path)
+            abs_paths.append(abs_path)
+
         temp_file = tempfile.NamedTemporaryFile()
 
         args += ["--source-map", temp_file.name]
