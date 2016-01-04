@@ -42,6 +42,8 @@ class UglifyJSCompressor(SubProcessCompressor):
             else:
                 args += settings.PIPELINE_UGLIFYJS_ARGUMENTS
 
+        temp_file = tempfile.NamedtemporaryFile()
+
         args += ["--source-map", temp_file.name]
         args += ["--source-map-include-sources"]
         for path in abs_paths:
