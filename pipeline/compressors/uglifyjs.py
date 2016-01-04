@@ -52,6 +52,8 @@ class UglifyJSCompressor(SubProcessCompressor):
 
         args += ["--source-map", temp_file.name]
         args += ["--source-map-include-sources"]
+
+        args += ["--"]
         for path in abs_paths:
             args += [path]
 
