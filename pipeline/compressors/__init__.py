@@ -254,6 +254,7 @@ class SubProcessCompressor(CompressorBase):
     def execute_command(self, command, content, shell=True):
         import subprocess
         stdin = subprocess.PIPE if content else None
+        print(command)
         pipe = subprocess.Popen(command, shell=shell, stdout=subprocess.PIPE,
                                 stdin=stdin, stderr=subprocess.PIPE)
         if content:
