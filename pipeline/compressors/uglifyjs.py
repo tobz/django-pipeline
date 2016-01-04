@@ -32,7 +32,7 @@ class UglifyJSCompressor(SubProcessCompressor):
             command += ' --verbose'
         return self.execute_command(command, js)
 
-     def compress_js_with_source_map(self, paths):
+    def compress_js_with_source_map(self, paths):
         # Build a list of arguments to run, starting with the binary path and any
         # user-specified arguments/flags.
         args = re.split(r'\s+', settings.PIPELINE_UGLIFYJS_BINARY)
