@@ -56,6 +56,9 @@ class Compressor(object):
 
     def compress_js(self, paths, templates=None, **kwargs):
         """Concatenate and compress JS files"""
+        if len(paths) == 0:
+          return "", None
+
         compressor = self.js_compressor
 
         if settings.PIPELINE_OUTPUT_SOURCEMAPS:
